@@ -1,11 +1,10 @@
 use std::thread;
-
 use rocket::http::Status;
-use rocket::log;
+use rocket::{log, warn};
 use rocket::serde::json::to_string;
 use rocket::tokio;
 
-use bambangshop_receiver::{APP_CONFIG, REQUEST_CLIENT, Result, compose_error_response};
+use bambangshop_receiver::{APP_CONFIG, REQWEST_CLIENT, Result, compose_error_response};
 use crate::model::notification::Notification;
 use crate::model::subscriber::SubscriberRequest;
 use crate::repository::notification::NotificationRepository;
@@ -28,14 +27,14 @@ impl NotificationService {
         let request_url: String = format!("{}/notification/subscribe/{}",
             APP_CONFIG.get_publisher_root_url(), product_type_str);
 
-        let request = REQUEST_CLIENT
+        let request = REQWEST_CLIENT
             .post(request_url.clone())
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .body(to_string(&payload).unwrap())
             .send().await;
 
-        log::warn!("Sent subscribe request to: {}", request_url);
+        warn!("Sent subscribe request to: {}", request_url);
 
         return match request {
             Ok(f) => match f.json::<SubscriberRequest>().await {
@@ -68,13 +67,13 @@ impl NotificationService {
         let request_url: String = format!("{}/notification/unsubscribe/{}/{}",
             APP_CONFIG.get_publisher_root_url(), product_type_str, notification_receiver_url);
 
-        let request = REQUEST_CLIENT
+        let request = REQWEST_CLIENT
             .post(request_url.clone())
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
             .send().await;
 
-        log::warn!("Sent unsubscribe request to: {}", request_url);
+        warn!("Sent unsubscribe request to: {}", request_url);
 
         return match request {
             Ok(f) => match f.json::<SubscriberRequest>().await {

@@ -92,8 +92,10 @@ impl NotificationService {
 
     pub fn unsubscribe(product_type: &str) -> Result<SubscriberRequest> {
         let product_type_clone: String = product_type.to_string();
-        return thread::spawn(move || Self::unsubscribe_request(product_type_clone))
-            .join().unwrap();
+        return thread::spawn(move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            rt.block_on(Self::unsubscribe_request(product_type_clone))
+        }).join().unwrap();
     }
 
     pub fn receive_notification(payload: Notification) -> Result<Notification> {
